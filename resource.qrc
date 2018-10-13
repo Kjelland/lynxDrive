@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>images/baseline-battery_charging_20-24px.svg</file>
+    </qresource>
+</RCC>
