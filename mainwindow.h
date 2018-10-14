@@ -2,7 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include <QtCharts>
+#include <QLayout>
+#include <QUdpSocket>
 namespace Ui {
 class MainWindow;
 }
@@ -23,7 +25,17 @@ private slots:
 
     void on_buttonDisconnect_clicked();
 
+    void on_pushButton_clicked();
+    void readyReadUDP();
+    void timerTick();
 private:
+    int numberOfSamples=100;
+    int test=0;
+    QTimer *timer;
+    QUdpSocket *socket;
+    QChart chart;
+    //QLineSeries series ;
+    QSplineSeries series ;
     Ui::MainWindow *ui;
     bool searchInProgress;
 };
