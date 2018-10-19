@@ -26,11 +26,17 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    mycharts.cpp \
+    LynxStructure.cpp
 
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    datagrams.h \
+    LynxStructure.h \
+    mycharts.h \
+    controllerstruct.h
 
 
 FORMS += \

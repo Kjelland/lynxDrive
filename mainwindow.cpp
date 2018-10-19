@@ -2,85 +2,98 @@
 #include "ui_mainwindow.h"
 #include <qdebug.h>
 #include <QNetworkDatagram>
+#include <algorithm>
+#include <QtGlobal>
+#include "datagrams.h"
+#include "controllerstruct.h"
+
+using namespace LynxStructureSpace;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
-{ui->setupUi(this);
-    socket = new QUdpSocket(this);
-        socket->bind(11000);
+{
+    ui->setupUi(this);
+    ui->graphicsView->setRenderHint(QPainter::Antialiasing);
+    ui->graphicsView->setChart(&myChart.chart);
 
-        connect(socket, SIGNAL(readyRead()), this, SLOT(readyReadUDP()));
-        timer = new QTimer(this);
-            connect(timer, SIGNAL(timeout()), this, SLOT(timerTick()));
-            timer->start(10);
-        /*for (int n=0;n<numberOfSamples;n++)
-        {
-            series.append(n,0);
-        }
-        */
+    pSocket = new QUdpSocket(this);
+    pSocket->bind(11000);
+    connect(pSocket, SIGNAL(readyRead()), this, SLOT(readyReadUDP()));
 
+    pTimer = new QTimer(this);
+    connect(pTimer, SIGNAL(timeout()), this, SLOT(timerTick()));
 
-
-        series.setName("Batman");
-        QPen pen(0x059605);
-        pen.setWidth(3);
-        series.setPen(pen);
-
-
-       // QChart *chart = new QChart();
-        chart.addSeries(&series);
-        chart.setTitle("Simple areachart example");
-        chart.createDefaultAxes();
-        //chart->axisX()->setRange(0, 20);
-        chart.axisY()->setRange(-10, 10);
-        ui->graphicsView->setRenderHint(QPainter::Antialiasing);
-        ui->graphicsView->setChart(&chart);
 
     ui->comboBox->addItem("Search for devices...");
-    // Used to display the chart
+    LynxID id;
+    id.deviceID=0x5;
+    id.structID=0x5;
 
-    //chart->setParent(ui->graph);
-    //chart->show();
+
+    lynxController.init(initParamsController,id);
+
+    //lynx.getData(driveID, eDriveTorqueRef)
+    //lynx.getData(motorID, eMotorResistance)
+
+    //lynxDrive.setData<uint32_t>(eDriveSpeedRef, 0x01234567);
+/*
+    lynxDrive.setData<uint32_t>(eDriveTorqueRef, 0x89abcdef);
+
+    qDebug()<<lynxDrive.getData<uint32_t>(eDriveSpeedRef);
+    unsigned char buffer[64]={0};
+    int writtenLength = lynxDrive.toBuffer((char*)buffer);
+    qDebug()<<writtenLength;
+    qDebug()<<"startbuffer";
+    for (int i = 0; i < writtenLength; i++)
+    {
+        qDebug() <<QString::number((buffer[i]), 16); ;
+    }
+qDebug()<<"endbuffer";
+    qDebug()<<buffer;
+    int readLength = lynxDrive.fromBuffer((char*)buffer);
+ */
+
+    pTimer->start(100);
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete pSocket;
+    delete pTimer;
 }
 
 void MainWindow::readyReadUDP()
 {
-    QNetworkDatagram datagram = socket->receiveDatagram();//receiveBuffer.data(), receiveBuffer.size(), &sender, &senderPort
+    QNetworkDatagram datagram = pSocket->receiveDatagram();//receiveBuffer.data(), receiveBuffer.size(), &sender, &senderPort
 
 
-    qDebug()<<"UDP Recived:"<<datagram.senderAddress().toIPv4Address();
+    //qDebug()<<"UDP Recived:"<<datagram.senderAddress().toIPv4Address();
+    QHostAddress ip = QHostAddress::Any;
+    QString ipDestination;
+    ipDestination=datagram.senderAddress().toString();
 
+    ui->labelIpAddress->setText(ipDestination);
 
-    //dataStoring.m_motorSpeed.setText(QString::number((float)(buffer[1])/1.0,'f',1));
-    //dataStoring.m_motorTorque.setText(QString::number((float)(buffer[2])/1.0,'f',1));
+    qDebug()<<ipDestination;
+    lynxController.fromBuffer(datagram.data());
+    //qDebug()<<lynxController.getData<int16_t>(joy_LX);
+    myChart.newCurrent=lynxController.getData<int16_t>(joy_LX);
+    myChart.newTorque=lynxController.getData<int16_t>(joy_LY);
+    myChart.newSpeed=lynxController.getData<int16_t>(joy_RX);
+    myChart.newPosition=lynxController.getData<int16_t>(joy_RY);
+
 }
+
+
 void MainWindow::timerTick()
 {
-    if(series.count() > numberOfSamples)
-         series.removePoints(0,1);
+    myChart.refreshChart();
 
-    series.append(test++, (qrand() % 10-5)*1.8);
-
-chart.axisX()->setRange(series.at(0).x(), series.at(series.count()- 1).x());
-    //qDebug()<<dataList.at(1);
-    //qDebug()<<dataList.at(2);
-
-//dataList.append(new DataSource("Item 5", "green"));
-//m_appViewer->rootContext()->setContextProperty("myModel", QVariant::fromValue(dataList));
-    // mapping
-    /*
-    while(lynx.txPackages_left>0){
-       lynx.LynxTransmit(transmitBuffer, &targetIpAddress);
-
-        socket->writeDatagram((char*)transmitBuffer,lynx.txPackage_length,QHostAddress(targetIpAddress) , 11000);
-     }*/
-/*
+    //   socket->writeDatagram((char*)transmitBuffer,lynx.txPackage_length,QHostAddress(targetIpAddress) , 11000);
+     /*
     if (socket->isValid()){
         transmitBuffer[0]=1;
         transmitBuffer[1]=2;
@@ -133,9 +146,85 @@ void MainWindow::on_buttonDisconnect_clicked()
 
 void MainWindow::on_pushButton_clicked()
 {
-    //series.clear();
 
-    //chart.axisY()->setRange(0, 6500);
+}
 
-    //ui->graphicsView->setChart(&chart);
+void MainWindow::on_checkBoxChartTorque_stateChanged(int arg1)
+{
+    if(arg1)
+    {
+
+        myChart.chart.addSeries(&myChart.seriesTorque);
+        myChart.showTorqueChart=true;
+        myChart.chart.createDefaultAxes();
+
+    }
+    else
+    {
+        myChart.showTorqueChart=false;
+        myChart.chart.removeSeries(&myChart.seriesTorque);
+        myChart.seriesTorque.clear();
+    }
+
+  //  ui->graphicsView->update();
+}
+
+void MainWindow::on_checkBoxChartSpeed_stateChanged(int arg1)
+{
+    if(arg1)
+    {
+
+        myChart.chart.addSeries(&myChart.seriesSpeed);
+        myChart.showSpeedChart=true;
+        myChart.chart.createDefaultAxes();
+    }
+    else
+    {
+        myChart.chart.removeSeries(&myChart.seriesSpeed);
+        myChart.showSpeedChart=false;
+        myChart.seriesSpeed.clear();
+
+       // ui->graphicsView->update();
+
+    }
+}
+
+void MainWindow::on_checkBoxChartCurrent_stateChanged(int arg1)
+{
+    if(arg1)
+    {
+
+        myChart.chart.addSeries(&myChart.seriesCurrent);
+        myChart.showCurrentChart=true;
+        myChart.chart.createDefaultAxes();
+    }
+    else
+    {
+        myChart.chart.removeSeries(&myChart.seriesCurrent);
+        myChart.showCurrentChart=false;
+        myChart.seriesCurrent.clear();
+
+        //ui->graphicsView->update();
+
+    }
+}
+
+void MainWindow::on_checkBoxChartPosition_stateChanged(int arg1)
+{
+    if(arg1)
+    {
+
+        myChart.chart.addSeries(&myChart.seriesPosition);
+        myChart.showPositionChart=true;
+        myChart.chart.createDefaultAxes();
+    }
+    else
+    {
+        myChart.chart.removeSeries(&myChart.seriesPosition);
+        myChart.showPositionChart=false;
+        myChart.seriesPosition.clear();
+
+      //  ui->graphicsView->update();
+
+    }
 }
