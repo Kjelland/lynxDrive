@@ -4,7 +4,7 @@
 #include <QNetworkDatagram>
 #include <algorithm>
 #include <QtGlobal>
-#include "datagrams.h"
+#include "driveDatagram.h"
 #include "controllerstruct.h"
 
 using namespace LynxStructureSpace;
@@ -24,38 +24,22 @@ MainWindow::MainWindow(QWidget *parent) :
     pTimer = new QTimer(this);
     connect(pTimer, SIGNAL(timeout()), this, SLOT(timerTick()));
 
-
     ui->comboBox->addItem("Search for devices...");
     LynxID id;
-    id.deviceID=0x5;
+
+    id.deviceID=0x5;//Uniq id for
     id.structID=0x5;
+    //id.structID=0x5;
+    lynxController.init(driveOperation,id);
+    /*
+    lynxController.init(MY_ID,"my drive");
+    lynxController.add(driveOperation,id);
+    lynxController.add(driveParams,id);
+    lynxController.add(driveControlParams,id);
+    */
+    pTimer->start(500);
 
-
-    lynxController.init(initParamsController,id);
-
-    //lynx.getData(driveID, eDriveTorqueRef)
-    //lynx.getData(motorID, eMotorResistance)
-
-    //lynxDrive.setData<uint32_t>(eDriveSpeedRef, 0x01234567);
-/*
-    lynxDrive.setData<uint32_t>(eDriveTorqueRef, 0x89abcdef);
-
-    qDebug()<<lynxDrive.getData<uint32_t>(eDriveSpeedRef);
-    unsigned char buffer[64]={0};
-    int writtenLength = lynxDrive.toBuffer((char*)buffer);
-    qDebug()<<writtenLength;
-    qDebug()<<"startbuffer";
-    for (int i = 0; i < writtenLength; i++)
-    {
-        qDebug() <<QString::number((buffer[i]), 16); ;
-    }
-qDebug()<<"endbuffer";
-    qDebug()<<buffer;
-    int readLength = lynxDrive.fromBuffer((char*)buffer);
- */
-
-    pTimer->start(100);
-
+    updateButtons();
 }
 
 MainWindow::~MainWindow()
@@ -64,26 +48,44 @@ MainWindow::~MainWindow()
     delete pSocket;
     delete pTimer;
 }
+void setButtonGreen(QPushButton *button, bool state)
+{
+    if(state)
+    {
+        button->setStyleSheet("background-color: lightgreen");
+    }
+    else
+    {
+        button->setStyleSheet("");
+    }
+}
+void MainWindow::updateButtons(void)
+{
+    setButtonGreen(ui->buttonEnableDrive,drive.getStatusBit(eEnabled));
+    setButtonGreen(ui->buttonOn1,drive.getStatusBit(eRunning));
+    setButtonGreen(ui->buttonOff2,drive.getStatusBit(eCoastDownEnabled));
+    setButtonGreen(ui->buttonOff3,drive.getStatusBit(eQuickStopEnabled));
+    ui->buttonOn1->setEnabled(drive.getStatusBit(eEnabled));
+    ui->buttonOff2->setEnabled(drive.getStatusBit(eEnabled));
+    ui->buttonOff3->setEnabled(drive.getStatusBit(eEnabled));
+    ui->buttonEnableDrive->setEnabled(!drive.getStatusBit(eRunning));
+}
 
 void MainWindow::readyReadUDP()
 {
-    QNetworkDatagram datagram = pSocket->receiveDatagram();//receiveBuffer.data(), receiveBuffer.size(), &sender, &senderPort
-
-
-    //qDebug()<<"UDP Recived:"<<datagram.senderAddress().toIPv4Address();
-    QHostAddress ip = QHostAddress::Any;
-    QString ipDestination;
-    ipDestination=datagram.senderAddress().toString();
-
-    ui->labelIpAddress->setText(ipDestination);
-
-    qDebug()<<ipDestination;
+    QNetworkDatagram datagram = pSocket->receiveDatagram();
+    ui->labelIpAddress->setText(datagram.senderAddress().toString());
     lynxController.fromBuffer(datagram.data());
-    //qDebug()<<lynxController.getData<int16_t>(joy_LX);
+    // Map booleans
+    drive.statusWord=lynxController.getData<uint16_t>(eDriveControl);
+    // Update buttons
+    updateButtons();
+    /*
     myChart.newCurrent=lynxController.getData<int16_t>(joy_LX);
     myChart.newTorque=lynxController.getData<int16_t>(joy_LY);
     myChart.newSpeed=lynxController.getData<int16_t>(joy_RX);
     myChart.newPosition=lynxController.getData<int16_t>(joy_RY);
+    */
 
 }
 
@@ -91,7 +93,14 @@ void MainWindow::readyReadUDP()
 void MainWindow::timerTick()
 {
     myChart.refreshChart();
+    drive.operation();
 
+    lynxController.setData<uint16_t>(eDriveControl,drive.statusWord);
+    QHostAddress targetAddress = QHostAddress("192.168.20.14");
+    int length = lynxController.toBuffer(dataBufferOut);
+    pSocket->writeDatagram(dataBufferOut, length, targetAddress, 11000);
+    drive.setControlBit(eReadFromFlash,false);
+    drive.setControlBit(eWriteToFlash,false);
     //   socket->writeDatagram((char*)transmitBuffer,lynx.txPackage_length,QHostAddress(targetIpAddress) , 11000);
      /*
     if (socket->isValid()){
@@ -126,6 +135,10 @@ void MainWindow::on_comboBox_highlighted(const QString &arg1)
 {
     if(arg1=="Search for devices..." && ui->comboBox->count()==1){
         //TODO: Add udp search for all ips. Populate the list. Create timer so that you have to wait 5-10s before next search.
+
+        //int length = lynxController.sendWHOIS(dataBufferOut);
+        //pSocket->writeDatagram(dataBufferOut, length, QHostAddress::Any, 11000);
+
         ui->comboBox->removeItem(0);
         ui->comboBox->addItem("Slew drive - 10.0.0.5");
         ui->comboBox->addItem("Winch drive - 10.0.0.99");
@@ -144,11 +157,6 @@ void MainWindow::on_buttonDisconnect_clicked()
     ui->buttonDisconnect->setEnabled(false);
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-
-}
-
 void MainWindow::on_checkBoxChartTorque_stateChanged(int arg1)
 {
     if(arg1)
@@ -165,8 +173,6 @@ void MainWindow::on_checkBoxChartTorque_stateChanged(int arg1)
         myChart.chart.removeSeries(&myChart.seriesTorque);
         myChart.seriesTorque.clear();
     }
-
-  //  ui->graphicsView->update();
 }
 
 void MainWindow::on_checkBoxChartSpeed_stateChanged(int arg1)
@@ -183,9 +189,6 @@ void MainWindow::on_checkBoxChartSpeed_stateChanged(int arg1)
         myChart.chart.removeSeries(&myChart.seriesSpeed);
         myChart.showSpeedChart=false;
         myChart.seriesSpeed.clear();
-
-       // ui->graphicsView->update();
-
     }
 }
 
@@ -203,9 +206,6 @@ void MainWindow::on_checkBoxChartCurrent_stateChanged(int arg1)
         myChart.chart.removeSeries(&myChart.seriesCurrent);
         myChart.showCurrentChart=false;
         myChart.seriesCurrent.clear();
-
-        //ui->graphicsView->update();
-
     }
 }
 
@@ -213,7 +213,6 @@ void MainWindow::on_checkBoxChartPosition_stateChanged(int arg1)
 {
     if(arg1)
     {
-
         myChart.chart.addSeries(&myChart.seriesPosition);
         myChart.showPositionChart=true;
         myChart.chart.createDefaultAxes();
@@ -223,8 +222,62 @@ void MainWindow::on_checkBoxChartPosition_stateChanged(int arg1)
         myChart.chart.removeSeries(&myChart.seriesPosition);
         myChart.showPositionChart=false;
         myChart.seriesPosition.clear();
-
-      //  ui->graphicsView->update();
-
     }
+}
+
+void MainWindow::on_buttonEnableDrive_toggled(bool checked)
+{
+    drive.setControlBit(eEnableDrive,checked);
+}
+
+void MainWindow::on_buttonOn1_toggled(bool checked)
+{
+    drive.setControlBit(eONOFF1,checked);
+}
+
+void MainWindow::on_buttonOff2_toggled(bool checked)
+{
+    drive.setControlBit(eOFF2,checked);
+}
+
+void MainWindow::on_buttonOff3_toggled(bool checked)
+{
+    drive.setControlBit(eOFF3,checked);
+}
+
+void MainWindow::on_buttonSaveFlash_clicked()
+{
+    drive.setControlBit(eWriteToFlash,true);
+}
+
+void MainWindow::on_buttonReadFlash_clicked()
+{
+    drive.setControlBit(eReadFromFlash,true);
+}
+
+void MainWindow::on_labelNumerofPoles_ACT_editingFinished()
+{
+
+    float var = ui->labelNumerofPoles_ACT->text().toFloat();
+     ui->labelNumerofPoles_STA->setText(QString::number(var));
+}
+
+void MainWindow::on_labelResistance_ACT_editingFinished()
+{
+    float var = ui->labelResistance_ACT->text().toFloat();
+}
+
+void MainWindow::on_labelLsq_ACT_editingFinished()
+{
+    float var = ui->labelLsq_ACT->text().toFloat();
+}
+
+void MainWindow::on_labelLsd_ACT_editingFinished()
+{
+    float var = ui->labelLsd_ACT->text().toFloat();
+}
+
+void MainWindow::on_labelEMF_ACT_editingFinished()
+{
+    float var = ui->labelEMF_ACT->text().toFloat();
 }

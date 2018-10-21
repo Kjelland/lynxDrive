@@ -16,7 +16,7 @@ enum ControllerContents
     endOfList
 };
 
-LynxStructureSpace::LynxStructure::InitParam initParamsController[8]
+static const LynxStructureSpace::LynxStructure::StructDefinition initParamsController[]
     {
         { joy_LX, eInt16 },
         { joy_LY, eInt16 },

@@ -6,6 +6,9 @@
 #include <QUdpSocket>
 #include "LynxStructure.h"
 #include "mycharts.h"
+#include "lynxdrive.h"
+
+#define MY_ID 0xAB
 
 namespace Ui {
 class MainWindow;
@@ -30,8 +33,6 @@ private slots:
 
     void on_buttonDisconnect_clicked();
 
-    void on_pushButton_clicked();
-
     void readyReadUDP();
 
     void timerTick();
@@ -44,13 +45,47 @@ private slots:
 
     void on_checkBoxChartPosition_stateChanged(int arg1);
 
+    void on_buttonEnableDrive_toggled(bool checked);
+
+    void on_buttonOn1_toggled(bool checked);
+
+    void on_buttonOff2_toggled(bool checked);
+
+    void on_buttonOff3_toggled(bool checked);
+
+    void on_buttonSaveFlash_clicked();
+
+    void on_buttonReadFlash_clicked();
+
+    void on_labelNumerofPoles_ACT_editingFinished();
+
+    void on_labelResistance_ACT_editingFinished();
+
+    void on_labelLsq_ACT_editingFinished();
+
+    void on_labelLsd_ACT_editingFinished();
+
+    void on_labelEMF_ACT_editingFinished();
+
 private:
+    char dataBufferOut[64];
+
+    LynxDrive drive;
+
+    void updateButtons(void);
+
     LynxStructureSpace::LynxStructure lynxController;
+
     LynxStructureSpace::LynxStructure lynxDrive;
+
     QTimer *pTimer;
+
     QUdpSocket *pSocket;
+
     MyCharts myChart;
+
     Ui::MainWindow *ui;
+
     bool searchInProgress;
 };
 

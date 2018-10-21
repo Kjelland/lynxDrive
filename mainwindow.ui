@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>689</width>
+    <width>844</width>
     <height>691</height>
    </rect>
   </property>
@@ -166,7 +166,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -186,9 +186,12 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_3">
+             <widget class="QPushButton" name="buttonEnableDrive">
               <property name="text">
-               <string>Enable</string>
+               <string>Enable Drive</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -210,6 +213,53 @@
          </layout>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <widget class="QPushButton" name="buttonOn1">
+            <property name="text">
+             <string>ON1</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonOff2">
+            <property name="text">
+             <string>OFF2</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonOff3">
+            <property name="text">
+             <string>OFF3</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_14">
           <item>
            <spacer name="horizontalSpacer_3">
@@ -225,16 +275,16 @@
            </spacer>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QPushButton" name="buttonSaveFlash">
             <property name="text">
-             <string>Encoder</string>
+             <string>Save to Flash</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QPushButton" name="buttonReadFlash">
             <property name="text">
-             <string>Field weakening</string>
+             <string>Read from Flash</string>
             </property>
            </widget>
           </item>
@@ -256,30 +306,17 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_15"/>
         </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
        </layout>
       </widget>
       <widget class="QTabWidget" name="tabWidget">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabMotor">
         <attribute name="icon">
@@ -303,14 +340,14 @@
            <item row="0" column="1">
             <layout class="QHBoxLayout" name="formLayou">
              <item>
-              <widget class="QLineEdit" name="lineEdit_6">
+              <widget class="QLineEdit" name="labelNumerofPoles_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_5"/>
+              <widget class="QLineEdit" name="labelNumerofPoles_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_6">
@@ -343,14 +380,14 @@
            <item row="1" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
-              <widget class="QLineEdit" name="lineEdit_4">
+              <widget class="QLineEdit" name="labelResistance_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_3"/>
+              <widget class="QLineEdit" name="labelResistance_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_4">
@@ -383,14 +420,14 @@
            <item row="2" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
-              <widget class="QLineEdit" name="lineEdit_7">
+              <widget class="QLineEdit" name="labelLsq_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_9"/>
+              <widget class="QLineEdit" name="labelLsq_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_14">
@@ -407,7 +444,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>mH</string>
+                <string>H</string>
                </property>
               </widget>
              </item>
@@ -423,14 +460,14 @@
            <item row="3" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
-              <widget class="QLineEdit" name="lineEdit_8">
+              <widget class="QLineEdit" name="labelLsd_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_10"/>
+              <widget class="QLineEdit" name="labelLsd_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_15">
@@ -447,7 +484,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>mH</string>
+                <string>H</string>
                </property>
               </widget>
              </item>
@@ -463,14 +500,14 @@
            <item row="4" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
-              <widget class="QLineEdit" name="lineEdit_12">
+              <widget class="QLineEdit" name="labelEMF_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_11"/>
+              <widget class="QLineEdit" name="labelEMF_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_16">
@@ -514,14 +551,14 @@
            <item row="0" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_36">
              <item>
-              <widget class="QLineEdit" name="lineEdit_49">
+              <widget class="QLineEdit" name="labelPWM_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_50"/>
+              <widget class="QLineEdit" name="labelPWM_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_57">
@@ -554,14 +591,14 @@
            <item row="1" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_37">
              <item>
-              <widget class="QLineEdit" name="lineEdit_51">
+              <widget class="QLineEdit" name="labelMaxVolt_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_52"/>
+              <widget class="QLineEdit" name="labelMaxVolt_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_58">
@@ -594,14 +631,14 @@
            <item row="2" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_38">
              <item>
-              <widget class="QLineEdit" name="lineEdit_53">
+              <widget class="QLineEdit" name="labelMaxCurrent_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_54"/>
+              <widget class="QLineEdit" name="labelMaxCurrent_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_59">
@@ -634,14 +671,14 @@
            <item row="3" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_39">
              <item>
-              <widget class="QLineEdit" name="lineEdit_55">
+              <widget class="QLineEdit" name="labelMaxAcceleration_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_56"/>
+              <widget class="QLineEdit" name="labelMaxAcceleration_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_60">
@@ -674,14 +711,14 @@
            <item row="4" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_40">
              <item>
-              <widget class="QLineEdit" name="lineEdit_57">
+              <widget class="QLineEdit" name="labelMaxSpeed_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_58"/>
+              <widget class="QLineEdit" name="labelMaxSpeed_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_61">
@@ -705,6 +742,31 @@
             </layout>
            </item>
           </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QCheckBox" name="checkBox_11">
+             <property name="text">
+              <string>Idenfity motor @ Startup</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonDownloadMotorParam">
+           <property name="text">
+            <string>Download parameters to drive</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonUploadMotorParam">
+           <property name="text">
+            <string>Upload parameters from drive</string>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer_4">
@@ -750,30 +812,27 @@
             </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QLabel" name="label_24">
+            <widget class="QLabel" name="labelDriveRampOFF1_STA">
              <property name="text">
-              <string>tba</string>
+              <string>Ramp OFF1</string>
              </property>
             </widget>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="label_25">
              <property name="text">
-              <string>tba</string>
+              <string>Ramp OFF3</string>
              </property>
             </widget>
            </item>
            <item row="0" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_25">
              <item>
-              <widget class="QLineEdit" name="lineEdit_2">
+              <widget class="QLineEdit" name="labelDriveMaxVoltage_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit"/>
              </item>
              <item>
               <widget class="QLabel" name="label_2">
@@ -787,14 +846,11 @@
            <item row="1" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_26">
              <item>
-              <widget class="QLineEdit" name="lineEdit_23">
+              <widget class="QLineEdit" name="labelDriveMaxCurrent_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit_30"/>
              </item>
              <item>
               <widget class="QLabel" name="label_28">
@@ -808,14 +864,14 @@
            <item row="2" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_27">
              <item>
-              <widget class="QLineEdit" name="lineEdit_31">
+              <widget class="QLineEdit" name="labelDriveRampOFF1_STA_2">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_32"/>
+              <widget class="QLineEdit" name="labelDriveRampOFF1_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_29">
@@ -829,14 +885,14 @@
            <item row="3" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_28">
              <item>
-              <widget class="QLineEdit" name="lineEdit_33">
+              <widget class="QLineEdit" name="labelDriveRampOFF3_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_34"/>
+              <widget class="QLineEdit" name="labelDriveRampOFF3_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_30">
@@ -889,19 +945,19 @@
            <item row="0" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_31">
              <item>
-              <widget class="QLineEdit" name="lineEdit_13">
+              <widget class="QLineEdit" name="labelEncResolution_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_14"/>
+              <widget class="QLineEdit" name="labelEncResolution_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_9">
                <property name="text">
-                <string>V</string>
+                <string>-</string>
                </property>
               </widget>
              </item>
@@ -910,19 +966,19 @@
            <item row="1" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_35">
              <item>
-              <widget class="QLineEdit" name="lineEdit_59">
+              <widget class="QLineEdit" name="labelEncOffset_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_60"/>
+              <widget class="QLineEdit" name="labelEncOffset_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_55">
                <property name="text">
-                <string>A</string>
+                <string>-</string>
                </property>
               </widget>
              </item>
@@ -931,14 +987,14 @@
            <item row="2" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_41">
              <item>
-              <widget class="QLineEdit" name="lineEdit_61">
+              <widget class="QLineEdit" name="labelEncLpf_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_62"/>
+              <widget class="QLineEdit" name="labelEncLpf_ACT"/>
              </item>
              <item>
               <widget class="QLabel" name="label_56">
@@ -952,14 +1008,14 @@
            <item row="3" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_42">
              <item>
-              <widget class="QLineEdit" name="lineEdit_63">
+              <widget class="QLineEdit" name="labelEncHpf_STA">
                <property name="enabled">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_64"/>
+              <widget class="QLineEdit" name="labelEncLpf_ACT_2"/>
              </item>
              <item>
               <widget class="QLabel" name="label_62">
@@ -988,7 +1044,29 @@
             </spacer>
            </item>
            <item>
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Encoder</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="autoExclusive">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QRadioButton" name="radioButton_3">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Sync@startup</string>
              </property>
@@ -999,6 +1077,9 @@
            </item>
            <item>
             <widget class="QRadioButton" name="radioButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Use offset value</string>
              </property>
@@ -1021,6 +1102,53 @@
             </spacer>
            </item>
           </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <widget class="QCheckBox" name="checkBox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Field weakening</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_12">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Calculate offset values @ startup</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonDownloadDriveParam">
+           <property name="text">
+            <string>Download parameters to drive</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonUploadDriveParam">
+           <property name="text">
+            <string>Upload parameters from drive</string>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer_3">
@@ -1418,9 +1546,9 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="buttonDownloadControlParam">
              <property name="text">
-              <string>Update</string>
+              <string>Download parameters to drive</string>
              </property>
             </widget>
            </item>
@@ -1449,7 +1577,7 @@
          <item>
           <widget class="QChartView" name="graphicsView">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1490,11 +1618,6 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tabSettings">
-        <attribute name="title">
-         <string>Settings</string>
-        </attribute>
-       </widget>
       </widget>
      </widget>
     </item>
@@ -1518,7 +1641,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>689</width>
+     <width>844</width>
      <height>25</height>
     </rect>
    </property>

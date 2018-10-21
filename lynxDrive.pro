@@ -28,15 +28,17 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     mycharts.cpp \
-    LynxStructure.cpp
+    LynxStructure.cpp \
+    lynxdrive.cpp
 
 
 HEADERS += \
         mainwindow.h \
-    datagrams.h \
     LynxStructure.h \
     mycharts.h \
-    controllerstruct.h
+    controllerstruct.h \
+    driveDatagram.h \
+    lynxdrive.h
 
 
 FORMS += \
