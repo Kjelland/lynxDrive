@@ -1,5 +1,5 @@
 #include "lynxdrive.h"
-
+#include <QDebug>
 LynxDrive::LynxDrive()
 {
 
@@ -7,61 +7,92 @@ LynxDrive::LynxDrive()
 
 void LynxDrive::operation(void)
 {
-    if(getControlBit(eEnableDrive))
-    {
-        setStatusBit(eEnabled,true);
-        if(getControlBit(eONOFF1))
+    switch (state) {
+    case eDriveOff:
+        if(getBit(&controlWord,eAckFaults))
+            setBit(&statusWord,eDriveFault,false);
+
+        if(getBit(&controlWord,eEnableDrive) && !getBit(&controlWord,eONOFF1) && !getBit(&controlWord,eOFF2))
         {
-            //Start motor
-            setStatusBit(eRunning,true);
+            state=eReady;
+            setBit(&statusWord,eEnabled,true);
+            qDebug()<<"Going to enable";
         }
-        else
+        break;
+    case eReady:
+        if(!getBit(&controlWord,eEnableDrive)| getBit(&controlWord,eOFF2))
         {
-            //Stop the motor with predef ramp
-            setStatusBit(eRunning,false);
+            state=eDriveOff;
+            setBit(&statusWord,eEnabled,false);
+            qDebug()<<"Going to off";
+        }
+        if(getBit(&controlWord,eONOFF1))
+        {
+            state=eOperation;
+            setBit(&statusWord,eRunning,true);
+            qDebug()<<"Going to run";
+        }
+        if(getBit(&controlWord,eIdentify))
+        {
+            qDebug()<<"Going to identify";
+            state=eIdentification;
+            setBit(&statusWord,eIdenfifying,true);
+        }
+        break;
+    case eOperation:
+        speedFeedback=speedSetpoint;
+        if(!getBit(&controlWord,eONOFF1))
+        {
+            state=eRampStop;
+            qDebug()<<"Going to ramp stop";
+            setBit(&statusWord,eRunning,false);
+        }
+        if(getBit(&controlWord,eOFF2))
+        {
+            qDebug()<<"Going to coast down";
+            state=eCoastDown;
+            setBit(&statusWord,eRunning,false);
+            setBit(&statusWord,eCoastDownEnabled,true);
         }
 
-        if(getControlBit(eOFF2))
-        {
-            //Set zero torque, then switch off
-            setStatusBit(eCoastDownEnabled,true);
-        }
-        if(getControlBit(eOFF3))
-        {
-            //Set zero torque, then switch off
-            setStatusBit(eQuickStopEnabled,true);
-        }
+        break;
 
-    }
-    else
-    {
-        setStatusBit(eEnabled,false);
-    }
+    case eRampStop:
+        //If abs(speed)<0.01
+        state=eReady;
+        break;
+
+    case eCoastDown:
+        //If abs(speed)<0.01
+        state=eDriveOff;
+        setBit(&statusWord,eCoastDownEnabled,false);
+        setBit(&statusWord,eEnabled,false);
+        qDebug()<<"Going to off";
+        break;
+
+    case eFault:
+        state=eCoastDown;
+        break;
+
+    case eIdentification:
+        //if(identified)
+        setBit(&statusWord,eIdenfifying,false);
+        setBit(&statusWord,eMotorIdentified,true);
+        state=eReady;
+        break;
+    }//end case
+    setBit(&statusWord,eSpeedModeEnabled,getBit(&controlWord,eSpeedMode));
 }
 
-bool LynxDrive::getControlBit(DriveControlWord controlBit)
-{
-
-    return (controlWord & controlBit)!=0;
-}
-
-void LynxDrive::setControlBit(DriveControlWord controlBit,bool value)
+void LynxDrive::setBit(uint16_t *word,uint16_t bitMask,bool value)
 {
     if(value)
-        controlWord |= controlBit;
+        *word |= bitMask;
     else
-        controlWord &= ~controlBit;
+        *word &= ~bitMask;
 }
 
-bool LynxDrive::getStatusBit(DriveStatusWord statusBit)
+bool LynxDrive::getBit(uint16_t *word,uint16_t bitMask)
 {
-    return (statusWord & statusBit)!=0;
-}
-
-void LynxDrive::setStatusBit(DriveStatusWord statusBit,bool value)
-{
-    if(value)
-        statusWord |= statusBit;
-    else
-        statusWord &= ~statusBit;
+    return (*word & bitMask)!=0;
 }

@@ -14,19 +14,20 @@ namespace LynxStructureSpace
 		eInt32,
 		eUint32,
 		eInt64,
-        eUint64,
-        eFloat,
-        eDouble,
-        eIQ
+		eUint64,
+		eFloat,
+		eDouble,
+		eIQ
 	};
 
 	struct LynxID
 	{
-		uint8_t deviceID;	// Identifies the current machine
-		uint16_t structID;	// Must be the same on both sides
+		uint8_t deviceID;			// Identifies the current machine
+		uint8_t structTypeID;		// Identifies the type of struct
+		uint8_t structInstanceID;	// Identifies the instance of the struct
 	};
 
-	enum StandardStructIDs : uint16_t
+	enum StandardStructIDs : uint8_t
 	{
 		invalidID = 0,
 		structureRequest,
@@ -35,37 +36,6 @@ namespace LynxStructureSpace
 		scanResponse,
 		endOfReserve
 	};
-
-	/*
-	enum E_Endianness
-	{
-		eNotChecked,
-		eLittle,
-		eBig
-	};
-	*/
-	/*
-	static void memcpyEndian(const void* src, void* dst, int size, E_Endianness srcEndian, E_Endianness dstEndian)
-	{
-		const char* charSrc = (char*)src;
-		char* charDst = (char*)dst;
-
-		if (srcEndian == dstEndian)
-		{
-			for (int i = 0; i < size; i++)
-			{
-				charDst[i] = charSrc[i];
-			}
-		}
-		else
-		{
-			for (int i = 0; i < size; i++)
-			{
-				charDst[size - i - 1] = charSrc[i];
-			}
-		}
-	}
-	*/
 
 	class LynxStructure
 	{
@@ -83,19 +53,20 @@ namespace LynxStructureSpace
 			indexingSize = 0;
 			size = 0;
 			data = nullptr;
-			dataParams = nullptr;
+			_structDefinition = nullptr;
+			_dataChanged = false;
 		};
 
 		~LynxStructure()
 		{
 			if (data)
 			{
-				delete data;
+				delete[] data;
 				data = nullptr;
 			}
-		}
+		};
 
-		void init(const StructDefinition initParams[], LynxID _lynxID, int nElements = 0);
+		void init(const StructDefinition structDefinition[], LynxID _lynxID, int nElements = 0);
 
 		int toBuffer(char *dataBuffer);			// Returns size of copied data if success, -1 if failure, -2 if checksum is wrong
 
@@ -103,42 +74,31 @@ namespace LynxStructureSpace
 
 		void clear();							// sets all elements to 0
 
+		const StructDefinition* structDefinition() { return this->_structDefinition; };
+
+		int getSize() { return this->size; };
+
+		bool dataChanged();
+
 		template <class T>
-		T getData(int target)
+		T getData(int identifier)
 		{	
-			int offset = getOffset(target);
+			int offset = getOffset(identifier);
 			if (offset < 0)
 			{
 				return 0;
 			}
 
+			this->_dataChanged = false;
+			
 			return *(T*)(data + offset);
 
-			/*
-			int index = getOffset(target);
-
-			T temp = 0;
-			T temp2 = 0;
-
-			if (index >= 0)
-			{
-				int dataDiff = sizeof(T) - sizeof(char);
-
-				for (int i = 0; i <= dataDiff; i++)
-				{
-					temp2 = ((T)data[index + i] << (i * 8)) & (0xFF << (i*8));
-					temp = temp | temp2;
-				}
-			}
-			
-			return temp;
-			*/
 		};
 
 		template <class T>
-		void setData(int target, T dataIn)
+		void setData(int identifier, T dataIn)
 		{
-			int offset = getOffset(target);
+			int offset = getOffset(identifier);
 			if (offset < 0)
 			{
 				return;
@@ -148,140 +108,118 @@ namespace LynxStructureSpace
 
 			*temp = dataIn;
 
-			/*
-			int index = getOffset(target);
+			this->_dataChanged = true;
 
-			if (index >= 0)
-			{
-				int dataDiff = sizeof(T) - sizeof(char);
-
-				T temp = dataIn;
-
-				for (int i = 0; i <= dataDiff; i++)
-				{
-					data[index + i] = (char)(temp & 0xFF);
-					temp >>= 8;
-				}
-			}
-			*/
 		};
-        template <class T>
-        bool getBit(int identifier, T bitMask)
-        {
-            return ((getData<T>(identifier) & bitMask) != 0);
-        };
 
-        template <class T>
-        void setBit(int identifier, T bitMask, bool state)
-        {
-            T temp = getData<T>(identifier);
-            if (state)
-            {
-                setData(identifier, temp | bitMask);
-            }
-            else
-            {
-                setData(identifier, temp & ~bitMask);
-            }
-        };
-		//template <class T>
-		//T& getReference(int target)
-		//{
-		//	// T& temp = (T&)0;
+		template <class T>
+		bool getBit(int identifier, T bitMask)
+		{
+			return ((getData<T>(identifier) & bitMask) != 0);
+		};
 
-		//	int index = getOffset(target);
-		//	if (index > -1)
-		//	{
-		//		T& temp = (T&)*(data + index);
-		//		return temp;
-		//	}
-
-		//	// return temp;
-		//} does not work
+		template <class T>
+		void setBit(int identifier, T bitMask, bool state)
+		{
+			T temp = getData<T>(identifier);
+			if (state)
+			{
+				setData(identifier, temp | bitMask);
+			}
+			else
+			{
+				setData(identifier, temp & ~bitMask);
+			}
+		};
 
 	private:
-		int getOffset(int target);
+		int getOffset(int identifier);
 
 		int indexingSize;
 		int size;
 
 		char *data;
 
-		const StructDefinition *dataParams;
+		bool _dataChanged;
 
-		int checkSize(LynxDataType dataType);
+		const StructDefinition* _structDefinition;
+
+		int checkLocalSize(LynxDataType dataType);
 
 		int checkTransferSize(LynxDataType dataType);
 
-		/*
-		template <class T>
-		static void toArray(const T srcValue, void* dstArray, E_Endianness srcEndian, E_Endianness dstEndian, int size = 0) // Use size to force copy sumber of chars, 8 bit char is then assumed
-		{
-			int copySize = 0;
-			if (size == 0)
-			{
-				if (srcEndian == dstEndian)
-				{
-					*(T*)dstArray = srcValue;
-					return;
-				}
-				else
-				{
-					copySize = sizeof(T) - sizeof(char) + 1;
-				}
-			}
-			else if (size > 0)
-			{
-				copySize = size;
-			}
-			else
-			{
-				return;
-			}
 
-			memcpyEndian(&srcValue, dstArray, copySize, srcEndian, dstEndian);
-
-		}
-		*/
 	};
 
-	/*
-	class StaticProperties
+	class LynxHandler
 	{
 	public:
-		static E_Endianness localEndian;
-		static E_Endianness init();
+		uint8_t deviceID;
+
+		LynxHandler(uint8_t _deviceID, int nStructs = 0)
+		{
+			_size = 0;
+			_reservedSize = 0;
+			_structures = nullptr;
+
+			this->init(_deviceID, nStructs);
+		};
+
+		~LynxHandler()
+		{
+			if (_structures)
+			{
+				delete[] _structures;
+				_structures = nullptr;
+			}
+		};
+
+		void init(uint8_t _deviceID, int nStructs = 0);
+
+		LynxID addStructure(uint8_t _structType, uint8_t _structInstance, const LynxStructure::StructDefinition* _structDefinition, int nElements = 0);
+
+		template <class T>
+		T getData(LynxID _lynxID, int _identifier)
+		{
+			int index = this->indexFromID(_lynxID);
+
+			if (index >= 0)
+			{
+				return this->_structures[index].getData<T>(_identifier);
+			}
+	
+			return 0;
+		};
+
+		template <class T>
+		T setData(LynxID _lynxID, int _identifier, T data) // Returns 0 if _lynxID was not found
+		{
+			int index = this->indexFromID(_lynxID);
+
+			if (index >= 0)
+			{
+				this->_structures[index].setData<T>(_identifier, data);
+				return data;
+			}
+
+			return 0;
+		};
+
+		int toBuffer(LynxID _lynxID, char* dataBuffer);
+
+		int fromBuffer(const char* dataBuffer);
+
+		bool dataChanged(LynxID _lynxID);
+
+		int size() { return _size; };
+
 	private:
-		StaticProperties() {};
-		~StaticProperties() {};
+		LynxStructure* _structures;
+		int _size;
+		int _reservedSize;
+
+		int indexFromID(LynxID _lynxID);
 	};
 
-	E_Endianness StaticProperties::localEndian { eNotChecked };
-
-	E_Endianness StaticProperties::init()
-	{
-		union
-		{
-			uint32_t testVar;
-			char testArray[sizeof(testVar)];
-		}test;
-
-		test.testVar = 1;
-
-		if (test.testArray[0] == 1)
-		{
-			StaticProperties::localEndian = eLittle;
-			return eLittle;
-		}
-		else
-		{
-			StaticProperties::localEndian = eBig;
-			return eBig;
-		}
-
-	}
-	*/
-
-	// static const LynxStructure::InitParam InitStructureRequest{ 0, eNoStorage };
 
  }

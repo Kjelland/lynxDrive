@@ -56,13 +56,13 @@ MyCharts::MyCharts()
     pen.setWidth(3);
     seriesTorque.setPen(pen);
 
-    seriesSpeed.setName("Speed");
+    seriesSpeedFeedback.setName("Speed Feedback");
     pen.setColor("Green");
-    seriesSpeed.setPen(pen);
+    seriesSpeedFeedback.setPen(pen);
 
-    seriesCurrent.setName("Current");
+    seriesSpeedSetpoint.setName("Speed Setpoint");
     pen.setColor("Blue");
-    seriesCurrent.setPen(pen);
+    seriesSpeedSetpoint.setPen(pen);
 
     seriesPosition.setName("Position");
     pen.setColor("Brown");
@@ -71,7 +71,7 @@ MyCharts::MyCharts()
     //chart.setTitle("Simple areachart example");
 }
 
-void MyCharts::updateChartSeries(QLineSeries* series,bool enableChart,qreal newValue)
+void MyCharts::updateChartSeries(QLineSeries* series,bool enableChart,double newValue)
 {
     if(enableChart)
     {
@@ -82,28 +82,28 @@ void MyCharts::updateChartSeries(QLineSeries* series,bool enableChart,qreal newV
         series->append(sampleIndex, newValue);
 
         if(newValue>chartYMax)
-            chartYMax=qreal(newValue);
+            chartYMax=(newValue);
         if(newValue<chartYMin)
-            chartYMin=qreal(newValue);
+            chartYMin=(newValue);
     }
 
 }
 
 
-void MyCharts::refreshChart()
+void MyCharts::refreshChart(double *position,double *speed,double *torque,double *current)
 {
     //Update chart
-    if(MyCharts::showTorqueChart||MyCharts::showSpeedChart||MyCharts::showPositionChart||showCurrentChart)
+    if(showTorqueChart||showSpeedChart||showPositionChart||showCurrentChart)
     {
         if(sampleIndex>numberOfSamples)
             startIndex=sampleIndex-numberOfSamples;
         //Generate random data..
-        updateChartSeries(&seriesTorque,MyCharts::showTorqueChart,newTorque);
-        updateChartSeries(&seriesSpeed,MyCharts::showSpeedChart,newSpeed);
-        updateChartSeries(&seriesCurrent,MyCharts::showCurrentChart,newCurrent);
-        updateChartSeries(&seriesPosition,showPositionChart,newPosition);
+        updateChartSeries(&seriesTorque,showTorqueChart,*torque);
+        updateChartSeries(&seriesSpeedFeedback,showSpeedChart,*speed);
+        updateChartSeries(&seriesSpeedSetpoint,showCurrentChart,*current);
+        updateChartSeries(&seriesPosition,showPositionChart,*position);
         chart.axisX()->setRange(startIndex,sampleIndex);
-        chart.axisY()->setRange(1.2*chartYMin,1.2*chartYMax);
+        chart.axisY()->setRange((1.2*chartYMin),1.2*chartYMax);
         sampleIndex++;
     }
     else

@@ -7,9 +7,10 @@
 #include "LynxStructure.h"
 #include "mycharts.h"
 #include "lynxdrive.h"
-
+#include <Windows.h>
+#include <Xinput.h>
 #define MY_ID 0xAB
-
+#define LYNX_MACHINE_ID 0x12
 namespace Ui {
 class MainWindow;
 }
@@ -49,36 +50,48 @@ private slots:
 
     void on_buttonOn1_toggled(bool checked);
 
-    void on_buttonOff2_toggled(bool checked);
-
-    void on_buttonOff3_toggled(bool checked);
-
     void on_buttonSaveFlash_clicked();
 
     void on_buttonReadFlash_clicked();
 
-    void on_labelNumerofPoles_ACT_editingFinished();
+    void xBoxTick();
 
-    void on_labelResistance_ACT_editingFinished();
+    void on_buttonUploadMotorParam_clicked();
 
-    void on_labelLsq_ACT_editingFinished();
+    void on_buttonDownloadMotorParam_clicked();
+    
+    void on_buttonSetTorqueMode_clicked();
 
-    void on_labelLsd_ACT_editingFinished();
+    void on_buttonSetSpeedMode_clicked();
 
-    void on_labelEMF_ACT_editingFinished();
+
+    void on_buttonUploadControlParam_clicked();
+
+    void on_buttonDownloadControlParam_clicked();
+
+    void on_buttonOff2_toggled(bool checked);
 
 private:
+    QHostAddress targetAddress;
+
+    LynxHandler lynx;
+
+    XINPUT_STATE controllerState;
     char dataBufferOut[64];
-
+    void setupIndicatorButtons(void);
     LynxDrive drive;
-
+    LynxID operation;
+    LynxID parameters;
+    LynxID controlParam;
     void updateButtons(void);
 
-    LynxStructureSpace::LynxStructure lynxController;
+    //LynxStructureSpace::LynxStructure lynxController;
 
-    LynxStructureSpace::LynxStructure lynxDrive;
+    //LynxStructureSpace::LynxStructure lynxDrive;
 
     QTimer *pTimer;
+
+    QTimer *pXboxTimer;
 
     QUdpSocket *pSocket;
 

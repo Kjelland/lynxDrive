@@ -9,7 +9,9 @@ using namespace LynxStructureSpace;
 
 // **************************************************************************
 // the defines
-
+#define OPERATION_STRUCT 0x22
+#define DRIVE_PARAM_STRUCT 0x23
+#define CONTROL_PARAM_STRUCT 0x24
 // **************************************************************************
 // the typedefs
 
@@ -29,7 +31,7 @@ using namespace LynxStructureSpace;
 //! \brief Enumerator for drive datagram for controlling the motor real time (minimal packet)
 //!
 enum DriveDatagram{
-    eDriveControl,   //!< 16-bit int with drive bits
+    eDriveWord,   //!< 16-bit int with drive bits
     eDriveTorque,    //!< Torque in Nm Q24
     eDriveSpeed,     //!< Speed in krpm Q24
     eDrivePosition,  //!< Position in revolutions Q16. 16bit singleturn - 16bit multiturn
@@ -37,16 +39,17 @@ enum DriveDatagram{
 
 static const LynxStructure::StructDefinition driveOperation[] =
 {
-    { eDriveControl, eUint16 },
-    { eDriveTorque, eUint32 },
-    { eDriveSpeed, eUint32 },
-    { eDrivePosition, eUint32 },
+    { eDriveWord, eUint16 },
+    { eDriveTorque, eInt32 },
+    { eDriveSpeed, eInt32 },
+    { eDrivePosition, eInt32 },
     { 0, eEndOfList }
 };
 
 //! \brief Drive datagram for sending/recieving the motor and drive parameters
 //!
 enum MotorDatagram{
+    eMotorParameterControl,
     eMotorPoles,
     eMotorResistance,
     eMotorDInductance,
@@ -66,12 +69,13 @@ enum MotorDatagram{
 
 static const LynxStructure::StructDefinition driveParams[] =
 {
+    { eMotorParameterControl, eUint16},
     { eMotorPoles, eFloat},
     { eMotorResistance, eFloat },
     { eMotorDInductance, eFloat },
     { eMotorQInductance, eFloat },
     { eMotorBackEmf, eFloat },
-    { eMotorMaxAcceleration, eFloat },
+    { eMotorMaxAcceleration, eInt32 },
     { eMotorMaxSpeed, eFloat },
     { eMotorMaxCurrent, eFloat },
     { eMotorMaxCurrentOverload, eFloat },
@@ -79,8 +83,8 @@ static const LynxStructure::StructDefinition driveParams[] =
     { eMotorPwmFrequency, eFloat },
     { eInverterMaxCurrent, eFloat },
     { eInverterMaxVoltage, eFloat },
-    { eEncoderResolution, eFloat },
-    { eEncoderOffset, eFloat },
+    { eEncoderResolution, eUint16 },
+    { eEncoderOffset, eUint32 },
     { eEndOfList, eEndOfList }
 };
 
@@ -88,72 +92,92 @@ static const LynxStructure::StructDefinition driveParams[] =
 //!
 enum ControlDatagram
 {
-    eControlPositionGainP,
-    eControlPositionGainI,
-    eControlPositionGainD,
+    eControlParameterControl,
+    //eControlPositionGainP,
+    //eControlPositionGainI,
+    //eControlPositionGainD,
     eControlSpeedGainP,
-    eControlSpeedyGainI,
+    eControlSpeedGainI,
     eControlCurrentGainP,
     eControlCurrentGainI,
-    eControlEnablePosition,
-    eControlEnableSpeed,
-    eControlEnableCurrent
+    //eControlEnablePosition,
+    //eControlEnableSpeed,
+    //eControlEnableCurrent
 };
 
 static const LynxStructure::StructDefinition driveControlParams[] =
 {
-    { eControlPositionGainP, eIQ},
-    { eControlPositionGainI, eIQ},
-    { eControlPositionGainD, eIQ},
+    { eControlParameterControl, eUint16},
+    //{ eControlPositionGainP, eIQ},
+    //{ eControlPositionGainI, eIQ},
+    //{ eControlPositionGainD, eIQ},
     { eControlSpeedGainP, eIQ},
-    { eControlSpeedyGainI, eIQ},
+    { eControlSpeedGainI, eIQ},
     { eControlCurrentGainP, eIQ},
     { eControlCurrentGainI, eIQ},
-    { eControlEnablePosition, eUint8},
-    { eControlEnableSpeed, eUint8},
-    { eControlEnableCurrent, eUint8},
+    //{ eControlEnablePosition, eUint8},
+    //{ eControlEnableSpeed, eUint8},
+    //{ eControlEnableCurrent, eUint8},
     { eEndOfList, eEndOfList }
+};
+//! \brief Enumerator for parameter control word
+//!
+enum ParameterControlWord{
+    eReadParamters      = (1<<0),   //!< Send back parameter status without writing new
+    eWriteParamters     = (1<<1),   //!< Write parameters and send back new status
 };
 //! \brief Enumerator for drive control word
 //!
 enum DriveControlWord{
-    eONOFF1             = (1<<0),   //!< Starts the motor with defined ramps
-    eOFF2               = (1<<1),   //!< Coast stop the motor (zero torque)
-    eOFF3               = (1<<2),   //!< Stops the motor instantly (emg stop)
-    eEnableDrive        = (1<<3),   //!< Enable drive bit. Needed to start/idenfity
-    eSpeedMode          = (1<<4),   //!< Enable speed mode
-    eEnableTorqueLimit  = (1<<5),   //!< Enable the torque limiter in speed mode. Torque ref.
-    eAckFaults          = (1<<6),   //!< Acknowledge faults
-    eIdentify           = (1<<7),   //!< Enable identification of motor and drive parameters
-    eUserParams         = (1<<8),   //!< Use predefined motor parameters
-    eUserOffset         = (1<<9),   //!< Use predefined offset values instead of measuring
-    eSensored           = (1<<10),  //!< Use encoder for sensored configuration
-    eFieldWeakening     = (1<<11),  //!< Enable field weakening for higher speeds
-    eWriteToFlash       = (1<<12),  //!< Save data in flash
-    eReadFromFlash      = (1<<13),  //!< Read data from flash
-    eFreeControl1       = (1<<14),  //!< Spare control word
-    eFreeControl2       = (1<<15),  //!< Spare control word
+    eONOFF1             = (1U<<0),   //!< Starts the motor with defined ramps
+    eOFF2               = (1U<<1),   //!< Coast stop the motor (zero torque)
+    eFreeControl3       = (1U<<2),   //!< Spare control bit
+    eEnableDrive        = (1U<<3),   //!< Enable drive bit. Needed to start/idenfity
+    eSpeedMode          = (1U<<4),   //!< Enable speed mode
+    eEnableTorqueLimit  = (1U<<5),   //!< Enable the torque limiter in speed mode. Torque ref.
+    eAckFaults          = (1U<<6),   //!< Acknowledge faults
+    eIdentify           = (1U<<7),   //!< Enable identification of motor and drive parameters
+    eUserParams         = (1U<<8),   //!< Use predefined motor parameters
+    eUserOffset         = (1U<<9),   //!< Use predefined offset values instead of measuring
+    eSensored           = (1U<<10),  //!< Use encoder for sensored configuration
+    eFieldWeakening     = (1U<<11),  //!< Enable field weakening for higher speeds
+    eWriteToFlash       = (1U<<12),  //!< Save data in flash
+    eReadFromFlash      = (1U<<13),  //!< Read data from flash
+    eFreeControl1       = (1U<<14),  //!< Spare control bit
+    eFreeControl2       = (1U<<15),  //!< Spare control bit
 };
 
 //! \brief Enumerator for drive status word
 //!
 enum DriveStatusWord{
-    eRunning             = (1<<0),   //!< Motor running
-    eCoastDownEnabled    = (1<<1),   //!< OFF2 enabled. Coast down to stop
-    eQuickStopEnabled    = (1<<2),   //!< OFF3 enabled. EMG stop
-    eEnabled             = (1<<3),   //!< Drive is enabled
-    eIdenfifying         = (1<<4),   //!< Idenfifying has been started
-    eMotorIdentified     = (1<<5),   //!< Motor is identified
-    eUsingUserParams     = (1<<6),   //!< Using the stored user parameters
-    eUsingOffset         = (1<<7),   //!< Using the stored offset values
-    eUsingSensored       = (1<<8),   //!< Using encoder for sensored configuration
-    eUsingFieldWeak      = (1<<9),   //!< Using field weakening
-    eSavedFlashSuccess   = (1<<10),  //!< Saving to flash was successfull
-    eReadFlashSuccess    = (1<<11),  //!< Reading from flash successfull, e.g. new data available
-    eFlashError          = (1<<12),  //!< Flash read/write error
-    eUserParamError      = (1<<13),  //!< Spare status word
-    eDriveFault          = (1<<14),  //!< Spare status word
-    eEncoderFault        = (1<<15),  //!< Spare status word
-
+    eRunning             = (1U<<0),   //!< Motor running
+    eCoastDownEnabled    = (1U<<1),   //!< OFF2 enabled. Coast down to stop
+    eIdenfifying         = (1U<<2),   //!< Idenfifying has been started
+    eEnabled             = (1U<<3),   //!< Drive is enabled
+    eSpeedModeEnabled    = (1U<<4),   //!< SpeedMode enabled
+    eMotorIdentified     = (1U<<5),   //!< Motor is identified
+    eUsingUserParams     = (1U<<6),   //!< Using the stored user parameters
+    eUsingOffset         = (1U<<7),   //!< Using the stored offset values
+    eUsingSensored       = (1U<<8),   //!< Using encoder for sensored configuration
+    eUsingFieldWeak      = (1U<<9),   //!< Using field weakening
+    eSavedFlashSuccess   = (1U<<10),  //!< Saving to flash was successfull
+    eReadFlashSuccess    = (1U<<11),  //!< Reading from flash successfull, e.g. new data available
+    eFlashFault          = (1U<<12),  //!< Flash read/write error
+    eUserParamFault      = (1U<<13),  //!< Parameter error
+    eDriveFault          = (1U<<14),  //!< Fault
+    eEncoderFault        = (1U<<15),  //!< Encoder fault
 };
+
+//! \brief Enumerator for drive state
+//!
+enum DriveState{
+    eDriveOff,
+    eReady,
+    eOperation,
+    eRampStop,
+    eCoastDown,
+    eFault,
+    eIdentification
+};
+
 #endif // DATAGRAMS_H

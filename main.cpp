@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include <QApplication>
-
+#include <QPalette>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 #include <QtMultimedia/QAudioDeviceInfo>

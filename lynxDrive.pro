@@ -54,3 +54,6 @@ DISTFILES +=
 
 RESOURCES += \
     resource.qrc
+
+
+win32: LIBS += -lxinput

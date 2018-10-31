@@ -54,25 +54,25 @@ public:
     MyCharts();
 
     //! Refresh all charts
-    void refreshChart();
+    void refreshChart(double *position,double *speedFB,double *torque,double *speedSP);
 
     QChart chart;   //!< The chart
+/*
+    double newTorque=0;
 
-    qreal newTorque=0;
+    double newSpeedFeedback=0;
 
-    qreal newSpeed=0;
+    double newSpeedSetpoint=0;
 
-    qreal newCurrent=0;
+    double newPosition=0;
+*/
+    QLineSeries seriesSpeedFeedback; //!< Buffer series for the speed
 
-    qreal newPosition=0;
+    QLineSeries seriesTorque;//!< Buffer series for the torque
 
-    QSplineSeries seriesSpeed; //!< Buffer series for the speed
+    QLineSeries seriesSpeedSetpoint;//!< Buffer series for the current
 
-    QSplineSeries seriesTorque;//!< Buffer series for the torque
-
-    QSplineSeries seriesCurrent;//!< Buffer series for the current
-
-    QSplineSeries seriesPosition;//!< Buffer series for the position
+    QLineSeries seriesPosition;//!< Buffer series for the position
 
     bool showSpeedChart=false;//!< enable the speed chart
 
@@ -88,15 +88,15 @@ private:
     //! \brief     Updates the buffer series with a new value
     //! \param[in] enableChart Enable the function
     //! \param[in] newValue The new value to be inserted into the buffer
-    void updateChartSeries(QLineSeries* series,bool enableChart,qreal newValue);
+    void updateChartSeries(QLineSeries* series,bool enableChart,double newValue);
 
     int sampleIndex=0;//!< current sample index
 
     int startIndex=0;//!< current start index
 
-    qreal chartYMax=1;
+    double chartYMax=1;
 
-    qreal chartYMin=-1;
+    double chartYMin=-1;
 
 
 };
